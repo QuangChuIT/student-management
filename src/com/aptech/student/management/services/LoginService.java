@@ -4,13 +4,17 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.Date;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.aptech.student.management.model.User;
 import com.aptech.student.management.util.DatabaseUtil;
 
 public class LoginService {
 	private User currentUser = null;
 	private static LoginService instance;
-
+	private static final Logger LOG = LogManager.getLogger(LoginService.class);
 	private LoginService() {
 
 	}
@@ -25,6 +29,7 @@ public class LoginService {
 	public void login(String username, String password) {
 		Connection connection = DatabaseUtil.getInstance().getConnection();
 		try {
+			LOG.info("Username {} password {}", username, password);
 			String sql = "select * from user where username = ? and password = ?";
 			PreparedStatement statement = connection.prepareStatement(sql);
 			statement.setString(1, username);
@@ -47,7 +52,7 @@ public class LoginService {
 			resultSet.close();
 			statement.close();
 		} catch (Exception e) {
-			System.out.println("Co loi xay ra khi login: " + e.getMessage());
+			LOG.error("Error when login", e);
 		} finally {
 			DatabaseUtil.getInstance().closeConnection(connection);
 		}
@@ -56,5 +61,4 @@ public class LoginService {
 	public User getCurrentUser() {
 		return this.currentUser;
 	}
-
 }
