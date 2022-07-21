@@ -10,13 +10,11 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
-import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
 import com.aptech.student.management.model.Student;
-import com.aptech.student.management.services.LoginService;
 import com.aptech.student.management.services.StudentService;
 import com.aptech.student.management.util.SystemConfig;
 import com.aptech.student.management.util.ValidatorUtil;
@@ -52,7 +50,11 @@ import java.awt.Dimension;
 
 public class frmMain extends JFrame implements ActionListener {
 
-	private JPanel contentPane;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
 	private JPanel controlPanel;
 	private JTextField txtBrithPlace, txtStudentID;
 	private JButton btnInsert, btnUpdate, btnDelete, btnCancel, btnFilter, btnOK;
@@ -65,7 +67,6 @@ public class frmMain extends JFrame implements ActionListener {
 	private GridBagLayout gb;
 	private GridBagConstraints gbc;
 	private List<Student> students;
-	private Long studentId = 0L;
 	private Student student = null;
 
 	/**
@@ -261,7 +262,6 @@ public class frmMain extends JFrame implements ActionListener {
 	private void displayStudent(Long studentId) {
 		Student student = students.stream().filter(item -> item.getId() == studentId).findFirst().get();
 		this.student = student;
-		this.studentId = studentId;
 		txtID.setText(String.valueOf(student.getId()));
 		txtName.setText(student.getName());
 		txtDate.setText(student.getDateOfBirth());

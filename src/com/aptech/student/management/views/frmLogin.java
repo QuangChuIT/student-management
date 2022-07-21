@@ -1,14 +1,12 @@
 package com.aptech.student.management.views;
-
-import java.awt.BorderLayout;
 import java.awt.EventQueue;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
-import com.aptech.student.management.model.User;
 import com.aptech.student.management.services.LoginService;
+import com.aptech.student.management.util.MessageSourceUtil;
 
 import java.awt.Font;
 import javax.swing.JLabel;
@@ -121,16 +119,16 @@ public class frmLogin extends JFrame implements ActionListener{
 		String username = this.txtUsername.getText();
 		String password = String.valueOf(this.txtPassword.getPassword());
 		if (username.equals("") || password.equals("")) {
-			JOptionPane.showMessageDialog(contentPane, "Vui long nhap tai khoan mat khau");
+			JOptionPane.showMessageDialog(contentPane, MessageSourceUtil.getInstance().getProperty("required_username_password"));
 			return;	
 		}
 		LoginService.getInstance().login(username, password);
 		if (LoginService.getInstance().getCurrentUser() != null) {
-			JOptionPane.showMessageDialog(contentPane, "Dang nhap thanh cong !");
+			JOptionPane.showMessageDialog(contentPane, MessageSourceUtil.getInstance().getProperty("login_success"));
 			new frmMain().setVisible(true);
 			this.setVisible(false);
 		} else {
-			JOptionPane.showMessageDialog(contentPane, "Dang nhap that bai. Tai khoan hoac mat khau khong dung !");
+			JOptionPane.showMessageDialog(contentPane, MessageSourceUtil.getInstance().getProperty("login_fail"));
 		}
 	}
 

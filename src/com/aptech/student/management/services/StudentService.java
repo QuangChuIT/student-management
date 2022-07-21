@@ -30,17 +30,8 @@ public class StudentService {
 	public List<Student> getStudents(String keyword) {
 		List<Student> students = new ArrayList<>();
 		Connection con = DatabaseUtil.getInstance().getConnection();
-		try {
-			String sql = "";
-			if (keyword != null && !keyword.equals("")) {
-				sql = "select * from student where concat(id,name,palace) like ? order by id desc";
-			} else {
-				sql = "select * from student order by id desc";
-			} 
-			PreparedStatement statement = con.prepareStatement(sql);
-			if (keyword != null && !keyword.equals("")) {
-				statement.setString(1, "%" + keyword + "%");
-			}
+		try (PreparedStatement statement = con.prepareCall("call get_students(?)")){
+			statement.setString(1, keyword);
 			ResultSet rs = statement.executeQuery();
 			while (rs.next()) {
 				long id = rs.getLong(1);
