@@ -15,6 +15,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
 import com.aptech.student.management.model.Student;
+import com.aptech.student.management.services.LoginService;
 import com.aptech.student.management.services.StudentService;
 import com.aptech.student.management.util.SystemConfig;
 import com.aptech.student.management.util.ValidatorUtil;
@@ -28,6 +29,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
@@ -54,10 +56,10 @@ public class frmMain extends JFrame implements ActionListener {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	
+
 	private JPanel controlPanel;
 	private JTextField txtBrithPlace, txtStudentID;
-	private JButton btnInsert, btnUpdate, btnDelete, btnCancel, btnFilter, btnOK;
+	private JButton btnInsert, btnUpdate, btnDelete, btnCancel, btnFilter, btnOK, btnImport;
 	private JTable table;
 	private JTextField txtID, txtName, txtDate, txtMath, txtPhysic, txtChem, txtTotal;
 	private JComboBox<String> cboCity;
@@ -89,7 +91,6 @@ public class frmMain extends JFrame implements ActionListener {
 	 * Create the frame.
 	 */
 	public frmMain() {
-
 		/*
 		 * if (LoginService.getInstance().getCurrentUser() == null) { new
 		 * frmLogin().setVisible(true); return; }
@@ -188,6 +189,7 @@ public class frmMain extends JFrame implements ActionListener {
 		btnDelete = createJButton("Delete");
 		btnCancel = createJButton("Cancel");
 		btnOK = createJButton("OK");
+		btnImport = createJButton("Import");
 		JPanel panelAction = new JPanel();
 		panelAction.setLayout(gb);
 		panel.setBackground(Color.GRAY);
@@ -196,6 +198,7 @@ public class frmMain extends JFrame implements ActionListener {
 		Add(panelAction, btnDelete, 2, 0, 30, 10);
 		Add(panelAction, btnOK, 3, 0, 40, 10);
 		Add(panelAction, btnCancel, 4, 0, 30, 10);
+		Add(panelAction, btnImport, 5, 0, 30, 10);
 		studentInfo.add(student);
 		studentInfo.add(panelAction);
 		studentInfo.setBorder(BorderFactory.createTitledBorder("Student Information"));
@@ -359,15 +362,35 @@ public class frmMain extends JFrame implements ActionListener {
 		}
 		if (cmd.equals(btnFilter)) {
 			this.loadData();
+		} 
+		if (cmd.equals(btnImport)) {
+			this.importFile();
 		}
 	}
 
-	private void delete () {
+	private void importFile() {
+		try {
+			final JFileChooser fileDialog = new JFileChooser();
+			int returnVal = fileDialog.showOpenDialog(controlPanel);
+            if (returnVal == JFileChooser.APPROVE_OPTION) {
+                java.io.File file = fileDialog.getSelectedFile();
+                String resp = StudentService.getInstance().importStudent(file.getAbsolutePath());
+                JOptionPane.showMessageDialog(controlPanel, resp);
+                this.loadData();
+            }
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+	}
+
+	private void delete() {
 		if (this.student == null) {
 			JOptionPane.showMessageDialog(controlPanel, "Chưa chọn học sinh");
 			return;
 		}
-		int choice = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn xóa học sinh " + this.student.getName() + " không?");
+		int choice = JOptionPane.showConfirmDialog(this,
+				"Bạn có chắc chắn muốn xóa học sinh " + this.student.getName() + " không?");
 		if (!(choice == JOptionPane.YES_OPTION)) {
 			return;
 		}
@@ -379,14 +402,15 @@ public class frmMain extends JFrame implements ActionListener {
 			JOptionPane.showMessageDialog(controlPanel, "Xóa thông tin học sinh thất bại");
 		}
 	}
-	
+
 	private void update() {
 		try {
 			if (this.student == null) {
 				JOptionPane.showMessageDialog(controlPanel, "Chưa chọn học sinh");
 				return;
 			}
-			if (!ValidatorUtil.validate(txtName.getText(), SystemConfig.getInstance().getProperty("rule_validate_name"))) {
+			if (!ValidatorUtil.validate(txtName.getText(),
+					SystemConfig.getInstance().getProperty("rule_validate_name"))) {
 				JOptionPane.showMessageDialog(controlPanel, "Tên không hợp lệ !");
 				return;
 			}

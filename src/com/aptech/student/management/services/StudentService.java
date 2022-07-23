@@ -1,8 +1,10 @@
 package com.aptech.student.management.services;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,7 +12,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.aptech.student.management.model.Student;
+import com.aptech.student.management.util.CSVUtil;
 import com.aptech.student.management.util.DatabaseUtil;
+import com.aptech.student.management.util.MessageSourceUtil;
 
 public class StudentService {
 	private static StudentService instance;
@@ -30,7 +34,7 @@ public class StudentService {
 	public List<Student> getStudents(String keyword) {
 		List<Student> students = new ArrayList<>();
 		Connection con = DatabaseUtil.getInstance().getConnection();
-		try (PreparedStatement statement = con.prepareCall("call get_students(?)")){
+		try (PreparedStatement statement = con.prepareCall("call get_students(?)")) {
 			statement.setString(1, keyword);
 			ResultSet rs = statement.executeQuery();
 			while (rs.next()) {
@@ -52,12 +56,13 @@ public class StudentService {
 		}
 		return students;
 	}
-	
+
 	public List<Student> filterStudents(String keyword) {
 		List<Student> students = new ArrayList<>();
 		Connection con = DatabaseUtil.getInstance().getConnection();
 		try {
-			//String sql = "select * from student where id = ? (or name like '%?%' or palace like '%?%') order by id desc";
+			// String sql = "select * from student where id = ? (or name like '%?%' or
+			// palace like '%?%') order by id desc";
 			String sql = "select * from student where concat(id,name,palace) like '%?%' order by id desc";
 			PreparedStatement statement = con.prepareStatement(sql);
 			statement.setString(1, keyword);
@@ -132,4 +137,37 @@ public class StudentService {
 		}
 		return result;
 	}
+
+	public String importStudent(String fileName) {
+		String resp = "";
+		Connection connection = DatabaseUtil.getInstance().getConnection();
+		try {
+			connection.setAutoCommit(false);
+			String sql = "insert into student(name,palace,gender,date_of_birth,math,physical,chemistry) values (?,?,?,?,?,?,?)";
+			CSVUtil.getInstance().openCSVFile(fileName, 1048576);
+			PreparedStatement statement = connection.prepareStatement(sql);
+			while (CSVUtil.getInstance().next()) {
+				List<String> values = CSVUtil.getInstance().getValues();
+				for (int i = 0; i < values.size(); i++) {
+					statement.setString(i + 1, values.get(i));
+				}
+				statement.addBatch();
+			}
+			statement.executeBatch();
+			connection.commit();
+			resp = MessageSourceUtil.getInstance().getProperty("import_success");
+		} catch (Exception e) {
+			LOG.error("Error import: ", e);
+			resp = MessageSourceUtil.getInstance().getProperty("import_fail", new Object[] {e.getMessage()});
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				LOG.error(e1);
+			}
+		} finally {
+			DatabaseUtil.getInstance().closeConnection(connection);
+		}
+		return resp;
+	}
+
 }
